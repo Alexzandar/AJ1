@@ -1,0 +1,196 @@
+{% extends "etl/uac_base.html" %}
+
+{% block cssheader %}
+<link href="/static/etl/bootstrap/bootstrap-datetimepicker.css" rel="stylesheet">
+<!-- <link href="/static/etl/css/bootstrap-datepicker.css" rel="stylesheet">
+<link href="/static/etl/css/bootstrap-datepicker.css" rel="stylesheet"> -->
+{% endblock %}
+
+{% block content %}
+<div class="col-lg-4">
+    <section class="panel">
+        <header class="panel-heading  m-bot15"> ETL Process Scheduler </header>
+        <div class="panel-body">
+            <div class="col-lg-12">
+                <form class="form-horizontal" role="form" method="post" action="/uac/savescheduler/"> {% csrf_token %} <div class="form-group">
+                        <label class="control-label" for="inputSuccess">Select Client</label>
+                        <select name="client" id="client" class="form-control m-bot10">
+                            <option value='0'>Select Client</option> {% for row in clients %} <option value="{{ row.client_id }}">{{ row.client_name }} </option> {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label " for="inputSuccess">Select ERP</label>
+                        <select name="erp" id="erp" class="form-control m-bot10">
+                            <option>Select ERP</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label " for="inputSuccess">Select Destination Tool</label>
+                        <select name="tool" id="toolid" class="form-control m-bot10">
+                            <option>Select Destination Tool</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label " for="inputSuccess">Extract Type</label>
+                        <select name="extract" id="extract" class="form-control m-bot10">
+                            <option>Select Extract Type</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label " for="inputSuccess">File Name Start with</label>
+                        <select name="file_start" id="file_start_id" class="form-control m-bot10">
+                            <option value='0'>Select File Name Start with</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="erpname">Date & Time [YYYY-MM-SS]</label>
+                        <input type="text" id="schedtime" autocomplete="off" name="schedtime" class="schedtime form-control" required value="">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                    <br />
+                </form> {% if messages %} {% for message in messages %} <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="alert">{{ message }}</div> {% endfor %} {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
+<div class="col-lg-8">
+    <section class="panel">
+        <header class="panel-heading"> Scheduled Process List </header>
+        <div class="panel-body">
+            <div class="col-sm-14">
+                <div class="col-sm-4"></div>
+                <table class="table table-condensed table-striped " id="erpMaster">
+                    <thead>
+                        <tr>
+                            <th>Client </th>
+                            <th>ERP </th>
+                            <th>Tool </th>
+                            <th>Extractor </th>
+                            <th>File Name Start</th>
+                            <th>Schedule From </th>
+                            <th>Status </th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody> {% for sched in schedule%} <tr>
+                            <td>{{ sched.client_name }}</td>
+                            <td>{{ sched.erp_name }}</td>
+                            <td>{{ sched.tool_name }}</td>
+                            <td>{{ sched.dest_short }}</td>
+                            <td>{{ sched.file_name_start }}</td>
+                            <td>{{ sched.date_from }}</td>
+                            <td> {% if sched.active == 'Y' %} <span class="label label-success">Active</span> {% else %} <span class="label label-danger">Inactive</span> {% endif %} </td>
+                            <td>
+                                <center><a class="btn btn-xs btn-warning btnEdit" title="Change Status" href="/uac/changestatus/{{ sched.scheduler_id }}/{{ sched.active }}/"><span class="glyphicon glyphicon-edit"></span></a> <a class="btn btn-xs btn-danger btnDel" href="/uac/removescheduler/{{ sched.scheduler_id }}" title="Delete"><span class="glyphicon glyphicon-trash"></span> </a></center>
+                            </td>
+                        </tr> {% endfor %} </tbody>
+                </table> {% if schedule.has_other_pages %} <ul class="pagination"> {% if schedule.has_previous %} <li><a href="?page={{ schedule.previous_page_number }}">&laquo;</a></li> {% else %} <li class="disabled"><span>&laquo;</span></li> {% endif %} {% for i in schedule.paginator.page_range %} {% if schedule.number == i %} <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li> {% else %} <li><a href="?page={{ i }}">{{ i }}</a></li> {% endif %} {% endfor %} {% if schedule.has_next %} <li><a href="?page={{ schedule.next_page_number }}">&raquo;</a></li> {% else %} <li class="disabled"><span>&raquo;</span></li> {% endif %} </ul> {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
+
+
+
+{% endblock %}
+
+
+{% block jsfooter %}
+<script src="/static/etl/js/moment/moment.min.js"></script>
+<script src="/static/etl/bootstrap/bootstrap-datetimepicker.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+
+    $('.schedtime').datetimepicker({ format: 'YYYY-MM-DD HH:mm' });
+    $('#extract').on('change', function() {
+        var value = $('#extract').val();
+        var clientId = $('#client').val();
+        var toolId = $('#toolid').val();
+        var erpId = $('#erp').val();
+        $.ajax({
+            type: "get",
+            url: "/uac/process/file_start_rule",
+            data: {
+                extId: value,
+                clientId: clientId,
+                toolId: toolId,
+                erpId: erpId
+            },
+            dataType: 'html'
+        }).done(function(response) {
+            data = JSON.parse(response)
+            extId = $("#extract option:selected").text()
+            $("#file_start_id").html('')
+            $('#alertbox').html('')
+            if (data['tool'].length) {
+                ($("#file_start_id").html('<option value=\'0\'> Select File Name Start with</option>'));
+                $.each(data['tool'], function(key, val) {
+                    $("#file_start_id").append('<option value=' + val.tool_id + '>' + val.file_name_start + '</option>');
+                });
+            } {
+                $('#alertbox').append('<div class="alert alert-danger">  <i class="fa  fa-check-square-o fa-2x"></i>&nbsp;&nbsp;<strong> Error:</strong>:&nbsp;&nbsp;' +  extId + ' has no File name start with</div>');
+            }
+        });
+    });
+    $('#client').on('change', function() {
+        Scheduler_Process($('#client').val(), 'Client', '', '');
+    });
+    $('#erp').on('change', function() {
+        Scheduler_Process($('#erp').val(), 'ERP', $('#client').val(), '');
+    });
+    $('#toolid').on('change', function() {
+        Scheduler_Process($('#toolid').val(), 'Tool', $('#client').val(), $('#erp').val());
+    });
+
+    function Scheduler_Process(value, typ, param1 = null, param2 = null) {
+        //var value = $('#clientId').val();
+        $.ajax({
+            type: "get",
+            url: "/uac/process/define_rule",
+            data: {
+                Id: value,
+                typ: typ,
+                param1: param1,
+                param2: param2
+            },
+            dataType: 'html'
+        }).done(function(response) {
+            data = JSON.parse(response)
+            if (typ == 'Client') {
+                $("#erp").html('');
+                ($("#erp").html('<option> Select ERP</option>'));
+                $.each(data['data'], function(key, val) {
+                    $("#erp").append('<option value=' + val.id + '>' + val.name + '</option>');
+                })
+            }
+            if (typ == 'ERP') {
+                $("#toolid").html('');
+                ($("#toolid").html('<option value=\'0\'> Select Destination Tool</option>'));
+                $.each(data['data'], function(key, val) {
+                    $("#toolid").append('<option value=' + val.id + '>' + val.name + '</option>');
+                })
+            }
+            if (typ == 'Tool') {
+                // $("#toolid").html('');
+                ($("#extract").html('<option value=\'0\'> Select Extractor</option>'));
+                $.each(data['data'], function(key, val) {
+                    $("#extract").append('<option value=' + val.id + '>' + val.name + '</option>');
+                })
+            }
+            $('#extract').find('option:eq(0)').prop('selected', true);
+        });
+    }
+    $(".btnDel").click(function(e) {
+        e.preventDefault();
+        var link = $(this).attr('href');
+        if (confirm("Delete this record, are you Sure ?")) {
+            window.location = link;
+        }
+    });
+});
+</script>
+
+{% endblock %}

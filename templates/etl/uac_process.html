@@ -1,0 +1,369 @@
+{% extends "etl/uac_base.html" %}
+
+{% block content %}
+
+<div class="col-lg-12">
+    <section class="panel">
+        <header class="panel-heading  m-bot15">
+            Extractor Transformation Process
+        </header>
+        <div class="panel-body">
+
+
+
+            <form class="form-horizontal" role="form" name="frmProcess">
+                {% csrf_token %}
+                <div class="col-lg-12">
+                    <div class="form-group">
+                        <div class="row">
+                           
+                            <div class="col-lg-2">
+
+                                <label class="control-label" for="clientname">Select Client</label><span class="text-danger">*</span></label>
+                                <select class="form-control m-bot10" name="client" id="clientId">
+                                    <option>Select Client</option>
+                                    {% for row in clients %}
+                                    <option value="{{ row.client_id }}">{{ row.client_name }} </option>
+                                    {% endfor %}
+                                </select>
+
+                            </div>
+                            <div class="col-lg-2">
+
+                                <label class="control-label" for="toolname">ERP</label><span class="text-danger">*</span></label>
+                                <select class="form-control m-bot10" name="erp_id" id="erp_id">
+
+                                    <option value='0'>Select ERP</option>
+
+                                </select>
+
+                            </div>
+                            <div class="col-lg-2">
+
+                                <label class="control-label" for="toolname">Destination Tool</label><span class="text-danger">*</span></label>
+                                <select class="form-control m-bot10" name="tool_id" id="tool_id">
+
+                                    <option value='0'>Select Destination Tool</option>
+
+                                </select>
+
+                            </div>
+
+
+
+
+
+                          <div class="col-lg-2">
+
+                            <label class="control-label" for="sourcefile">Extractor</label><span class="text-danger">*</span></label>
+                            <select class="form-control m-bot10" name="extid" id="extId">
+                                <option value='0'>Select Extractor</option>
+                               <!--  {% for row in df %}
+                                <option value="{{ row.dest_file_id }}">{{ row.dest_file_name }} </option>
+                                {% endfor %} -->
+                            </select>
+
+                        </div>
+                        <div class="col-lg-2">
+
+                            <label class="control-label" for="filename">File name start with</label><span class="text-danger">*</span></label>
+                            <select class="form-control m-bot10" name="file_id" id="file_id">
+                                <option value='0'>Select File Name Start with</option>
+                     
+                        </select>
+
+                    </div>
+					                <div class="col-lg-2">
+	<br />
+                    <button type="button" class="btn btn-primary" id="btnProcess" ><i class="fa fa-files-o"></i> Start Process</button>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+                            <div class="modal fade " data-backdrop="static" data-keyboard="false"  id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                              <div class="modal-dialog">
+                                  <div class="modal-content">
+                                      <div class="modal-header">
+                                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                          <h5 class="modal-title">UAC - ETL Process</h5>
+                                      </div>
+                                      <div class="modal-body">
+
+                                      </div>
+                                      <div class="modal-footer footer-button">
+
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+    <div class="col-lg-12">
+        <div class="form-group">
+            <div class="row">
+
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+<div class="col-lg-12 text-center">
+
+   <img src="/static/etl/img/loader1.gif" id="imgloader"  style="visibility:hidden"	/>
+
+</div>
+<div class="col-lg-12">
+   <div id="alertbox">                             
+
+   </div>
+</div>
+
+</div>
+</section>
+</div>
+
+
+{% endblock %}
+
+
+{% block jsfooter %}
+<script type="text/javascript">
+
+    $(document).ready(function() {
+
+        $('#extId').on('change',function() {
+
+            var value = $('#extId').val();
+            var clientId = $('#clientId').val();
+            var toolId = $('#tool_id').val();
+            var erpId =$('#erp_id').val();
+
+            $.ajax({
+                type: "get",
+                url: "/uac/process/file_start_rule",
+                data: {
+                    extId: value,
+                    clientId :clientId,
+                    toolId :toolId,
+                    erpId: erpId
+
+                },
+                dataType: 'html'
+            }).done(function(response) {
+            // console.log(response);
+            
+            data = JSON.parse(response)
+
+            console.log($("#extId option:selected").text())
+            extId =$("#extId option:selected").text()
+            $("#file_id").html('')
+            $('#alertbox').html('')
+            if(data['tool'].length){
+                ($("#file_id").html('<option value=\'0\'> Select File Name Start with</option>'));
+                $.each(data['tool'], function (key, val) {
+
+
+                    $("#file_id").append('<option value='+ val.tool_id +'>' + val.file_name_start + '</option>');
+                });
+
+
+
+            }
+            else
+            {
+                $('#alertbox').append('<div class="alert alert-danger">  <i class="fa  fa-check-square-o fa-2x"></i>&nbsp;&nbsp;<strong> Error:</strong>:&nbsp;&nbsp; ' + extId +' has no File name start with</div>');
+
+
+
+            }
+
+        });
+
+
+        });
+
+
+        $('#clientId').on('change',function() {
+
+            ETL_Process($('#clientId').val(),'Client','','',$('#clientId option:selected').text()); 
+            
+
+        });
+        $('#erp_id').on('change',function() {
+            ETL_Process($('#erp_id').val(),'ERP',$('#clientId').val(),'');    
+
+        });    
+
+        $('#tool_id').on('change',function() {
+            ETL_Process($('#tool_id').val(),'Tool',$('#clientId').val(),$('#erp_id').val());   
+
+        }); 
+        function ETL_Process(value,typ,param1=null,param2=null,text=null){
+    //var value = $('#clientId').val();
+    // alert(" ");
+    $.ajax({
+
+        type: "get",
+        url: "/uac/process/define_rule",
+        data: {
+            Id: value,
+            typ:typ,
+            param1:param1,
+            param2:param2
+
+        },
+        dataType: 'html'
+    }).done(function(response) {
+        
+        console.log(response);
+        data = JSON.parse(response)
+        
+        
+            if(typ=='Client')
+            {
+                if(Object.keys(response).length<=12)
+
+                {
+                $('#alertbox').html('<div class="alert alert-danger">  <i class="fa fa-exclamation-triangle fa-2x"></i>&nbsp;<strong>Warning:</strong>Please generate client extractor settings</div>');
+            }
+                
+                
+        
+                $("#erp_id").html('');
+                ($("#erp_id").html('<option value=\'0\'> Select ERP</option>'));
+
+
+                $.each(data['data'], function (key, val) {
+
+
+                   
+
+
+                   $("#erp_id").append('<option value='+ val.id +'>' + val.name + '</option>');
+                   
+               })
+                
+            }
+            if(typ=='ERP')
+            {
+                $("#tool_id").html('');
+                ($("#tool_id").html('<option value=\'0\'> Select Destination Tool</option>'));
+
+                $.each(data['data'], function (key, val) {
+
+                   // console.log(val)
+
+                   $("#tool_id").append('<option value='+ val.id +'>' + val.name + '</option>');
+               })
+            }
+            if(typ=='Tool')
+            {
+                $("#extId").html('');
+                ($("#extId").html('<option value=\'0\'> Select Extractor</option>'));
+
+                $.each(data['data'], function (key, val) {
+
+                    // console.log(val)
+
+                    $("#extId").append('<option value='+ val.id +'>' + val.name + '</option>');
+                })
+            }
+            
+            
+
+            
+            
+
+            $('#extId').find('option:eq(0)').prop('selected', true);
+        });
+
+
+}
+
+$("#btnProcess").click(function() {
+    var var1 = $('#clientId').val();
+    var var2 = $('#extId').val();
+    var var3 = $('#tool_id').val();
+    var var4 =$('#file_id').val();
+    var var5= $('#erp_id').val();
+    var var6 = 'INTERACTIVE'
+    if ($('#clientId').val()=='0' || $('#tool_id').val()=='0' || $('#extId').val()=='0' || $('#file_id').val()=='0')
+    {
+                //alert('Please select required fileds');
+
+                $('#alertbox').html('<div class="alert alert-danger">  <i class="fa fa-exclamation-triangle fa-2x"></i>&nbsp;<strong>Warning:</strong>Please select required fileds</div>');
+                
+                $("#alertbox").show();
+                window.setTimeout(function () {
+                  $("#alertbox").slideUp(500, function () {
+                //$(this).remove();
+            });
+              }, 3000);
+                return;
+            }
+
+            
+
+            $('#imgloader').css('visibility', 'visible');
+
+            $('#alertbox').html("");
+            $("#msg").addClass('alert-info');
+            $("#msg").html('<i class="fa fa-spinner fa-spin fa-2x"></i>&nbsp;&nbsp;Wait...ETL Process is going on..');    
+            $.ajax({
+                type: "POST",
+                url: "/uac/process/test/",
+                data: {
+                    client: var1,
+                    destfile: var2,
+                    tool: var3,
+                    file_start:var4,
+                    erp:var5,
+                    method:var6,
+                    csrfmiddlewaretoken: document.getElementsByName('csrfmiddlewaretoken')[0].value
+                },
+                dataType: 'json',
+                success: function(response) {
+                    setTimeout(function() {
+                        console.log(response.message)
+                        var objMsg = response.message;
+
+
+                        for (i = 0; i < objMsg.length; i++) {
+
+                            if (objMsg[i].status == '200') {
+                                $('#alertbox').append('<div class="alert alert-success">  <i class="fa  fa-check-square-o fa-2x"></i>&nbsp;&nbsp;<strong>' + objMsg[i].filename + '</strong>:&nbsp;&nbsp;' + objMsg[i].message + '</div>');
+
+                            } else if (objMsg[i].status == '400') {
+                                errors = '<br />';
+                                $.each(objMsg[i].message, function(k, v) {
+                                    $.each(objMsg[i].message[k], function(a, b) {
+                                        errors = errors + '&nbsp;&nbsp; -' + b + '<br />'
+                                    });
+                                });
+                                $('#alertbox').append('<div class="alert alert-danger">  <i class="fa fa-exclamation-triangle fa-2x"></i>&nbsp;&nbsp;<strong>' + objMsg[i].filename + '</strong>:&nbsp;&nbsp;' + errors + '</div>');
+
+
+
+                            }
+
+                            else if (objMsg[i].status == '401') {
+                                $('#alertbox').append('<div class="alert alert-danger">  <i class="fa fa-exclamation-triangle fa-2x"></i>&nbsp;&nbsp;<strong>Error :</strong>:&nbsp;&nbsp;' + objMsg[i].message + '</div>');
+                            }
+
+                            $('#imgloader').css('visibility', 'hidden');
+
+                        }
+                    }, 500);
+
+                }
+            });
+
+            return false;
+        });
+
+});
+</script>
+
+{% endblock %}

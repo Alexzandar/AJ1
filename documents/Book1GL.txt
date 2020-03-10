@@ -1,0 +1,8 @@
+companycode	account	profitcenter	tradingpartner	businessarea	costcenter	ledger	accountdescription	fiscalyear	period	ccy1	ccy1amt	ccy2	ccy2amt	ccy3	ccy3amt	ccy1amtnetdebits	ccy2amtnetdebits	ccy3amtnetdebits	ccy1amtnetcredits	ccy2amtnetcredits	ccy3amtnetcredits	transactioncount
+1000	113001			0	0	0L	BANK       OUTG  CHECKS	2019	9	INR	0	USD	0	USD	0					0		
+1000	113002			0	0	0L	BANK   TRANSFERS	2019	9	INR	1098002	USD	94789.54	USD	-94789.54					0		
+1000	113003			0	0	0L	CONCENTRATION @ACCOUNT   ACH OUT	2019	9	INR	0	USD	1000	USD	1000					0		
+1000	113005			0	0	0L	CONCENTRATION ACCOUNT   CHECK OUT	2019	9	INR	0	USD	0	USDE	0					0		
+1000	113008			0	0	0L	CONCENTRATION ACCOUNT   OTHER TRANSFERS	2019	9	INR	0	USD	0	USD	0					0		
+1000	113009			0	0	0L	CONCENTRATION ACCOUNT   TREASURY TRANSFER	2019	9	INR	0	USD	0	USD	0					0		
+1000	152060			0	0	0L	prepayments	2019	9	INR	0	USD	4600	USD	4600					0		

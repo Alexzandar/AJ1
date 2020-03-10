@@ -1,0 +1,214 @@
+{% extends "etl/uac_base.html" %}
+
+{% block content %}
+       
+ <!-- page start-->
+ <div class="col-lg-12">
+ 
+                       <div class="row">
+                          <div class="col-lg-12">
+                              <section class="panel">
+                                  <div class="panel-body">
+                                      <ul class="summary-list">
+                                          <li>
+                                              <a href="javascript:;">
+                                                  <i class=" fa fa-shopping-cart text-primary"></i>
+                                                  {{count}} Clients
+                                              </a>
+                                          </li>
+                                          <li>
+                                              <a href="javascript:;">
+                                                  <i class="fa  fa-file-text text-info"></i>
+                                                  {{excount}} Extractors
+                                              </a>
+                                          </li>
+                                          <li>
+                                              <a href="javascript:;">
+                                                  <i class=" fa  fa-check-square-o text-success"></i>
+                                                  {{count_success}} Successful
+                                              </a>
+                                          </li>
+                                          <li>
+                                              <a href="javascript:;">
+                                                  <i class="fa fa-warning text-danger"></i>
+                                                  {{count_failed}} Fail
+                                              </a>
+                                          </li>
+                                          <li>
+                                              <a href="javascript:;">
+                                                  <i class="fa fa-calendar text-danger"></i>
+                                                  {{count_scheduler}} Scheduled
+                                              </a>
+                                          </li>
+										  
+                                      </ul>
+                                  </div>
+                              </section>
+                          </div>
+                      </div>
+              <div class="tab-pane" id="chartjs">
+                  <div class="row">
+                      <div class="col-lg-6">
+                          <section class="panel">
+                              <header class="panel-heading">
+                                    Total Extractors Processed
+                              </header>
+                              <div class="panel-body text-center" >
+                                  <canvas id="barchart" height="300" width="400"></canvas>
+                              </div>
+                              
+                          </section></div>
+                     
+                      <div class="col-lg-6">
+                          <section class="panel">
+                              <header class="panel-heading">
+                                 # of Extractors Processed by Client
+                              </header>
+							 <div class="panel-body text-center">
+                                  <canvas id="horiz-bar" height="300" width="400"></canvas>
+                              </div>
+                          </section>
+                      </div>
+                  </div>
+                  <div class="row">
+                      <div class="col-lg-6">
+                          <section class="panel">
+                              <header class="panel-heading">
+                                 Transformation Status
+                              </header>
+                              <div class="panel-body text-center">
+                                  <canvas id="pie" height="300" width="400"></canvas>
+                              </div>
+                          </section>
+                      </div>
+                      <div class="col-lg-6">
+                          <section class="panel">
+                              <header class="panel-heading">
+                                  Type of ETL Process Execution
+                              </header>
+                              <div class="panel-body text-center">
+                                  <canvas id="barchart2" height="300" width="400"></canvas>
+                              </div>
+                          </section>
+                      </div>
+                  </div>
+
+              </div>
+</div>	
+
+              <!-- page end-->
+
+
+
+
+{% load staticfiles %} 
+<script type="text/javascript">
+$(document).ready(function() {
+$.ajax({
+    type: "get",
+    url: "/uac/getdashboard/",
+    dataType: 'json',
+    cache: false,
+    success: function(response) {
+        ext = response.Ext;
+        count = response.Nos;
+        // Bar chart - Chart 1
+        new Chart(document.getElementById("barchart"), {
+            type: 'bar',
+            data: {
+                labels: response.Ext,
+                datasets: [{
+                    label: "# of Extractors",
+                    backgroundColor: ["#fb7452", "#fdd35f", "#b8c791", "#55a576", "#4e635a","#003b5c","#005587","#8bb8e8","#ffb81c"],
+                    data: response.ExtNos
+                }]
+            },
+            options: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Extractor wise count '
+                }
+            }
+        });
+        // Bar End
+        // Horizontal Bar - 
+        new Chart(document.getElementById("horiz-bar"), {
+            type: 'horizontalBar',
+            data: {
+                labels: response.Clients,
+                datasets: [{
+                    label: "# of Extractors",
+                    backgroundColor: ["#fb7452", "#fdd35f", "#b8c791", "#55a576", "#4e635a"],
+                    data: response.ClientNos
+                }]
+            },
+            options: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Client wise count'
+                }
+            }
+        });
+
+        // Horizontal Bar End		   
+		
+		// Pie
+new Chart(document.getElementById("pie"), {
+    type: 'pie',
+    data: {
+      labels: response.ResultStatus,
+      datasets: [{
+        label: "Process Status",
+        backgroundColor: [,"#b8c791","#55a576","#4e635a","#fb7452","#fdd35f" ],
+        data: response.StatusNos
+      }]
+    },
+    options: {
+      title: {
+        display: true,
+        text: 'ETL Process Status'
+      }
+    }
+});
+
+ // Execution Type - Bar chart - Chart 4
+        new Chart(document.getElementById("barchart2"), {
+            type: 'bar',
+            data: {
+                labels: response.ExecType,
+                datasets: [{
+                    label: "# of Extractors",
+                    backgroundColor: ["#003b5c","#005587","#8bb8e8","#ffb81c","#ffd100"],
+					
+                    data: response.ExecNos
+                }]
+            },
+            options: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Method of Execution'
+                }
+            }
+        });
+        // Chart4 End
+		
+    } // success response end
+	
+	
+});
+
+
+
+});
+	</script>
+
+{% endblock %}

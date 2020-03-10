@@ -1,0 +1,182 @@
+{% extends "etl/uac_base.html" %}
+
+{% block content %}
+ <div class="col-lg-8">
+     <section class="panel">
+         <header class="panel-heading  m-bot15"> View Users </header>
+         <div class="panel-body">
+             <div class="col-sm-12">
+                 <div class="col-sm-3"></div>
+                 <div id="alertbox"></div>
+                 <table class="table table-condensed table-striped " id="usrMaster">
+                     <thead>
+                         <tr>
+                             <th>Login </th>
+                             <th>First Name</th>
+                             <th>Email</th>
+                             <th>Action</th>
+                         </tr>
+                     </thead>
+                     <tbody> {% for usr in users%} <tr>
+                             <td>{{ usr.username }}</td>
+                             <td>{{ usr.first_name }}</td>
+                             <td>{{ usr.email }}</td>
+                             <td>
+                                 <center><a class="btn btn-xs btn-primary btnPerms" href="/uac/masters/usrperms/{{ usr.id }}" title="View Permissions" rel="{{ usr.id }}"><span class="glyphicon glyphicon-user"> </span>&nbsp;Permissions</a>
+                                     <a class="btn btn-xs btn-warning btnToken" href="/uac/masters/usrtoken/{{ usr.id }}" title="Token"> <span class="glyphicon glyphicon-credit-card"></span>&nbsp;API Token </a>&nbsp;<a class="btn btn-xs btn-danger btnPass" href="/uac/masters/password/{{ usr.id }}" title="Password Reset"><span class="glyphicon glyphicon-repeat"></span>&nbsp; Reset Password </a></center>
+                             </td>
+                         </tr> {% endfor %} </tbody>
+                 </table> {% if users.has_other_pages %} <ul class="pagination"> {% if users.has_previous %} <li><a href="?page={{ users.previous_page_number }}">&laquo;</a></li> {% else %} <li class="disabled"><span>&laquo;</span></li> {% endif %} {% for i in users.paginator.page_range %} {% if users.number == i %} <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li> {% else %} <li><a href="?page={{ i }}">{{ i }}</a></li> {% endif %} {% endfor %} {% if users.has_next %} <li><a href="?page={{ users.next_page_number }}">&raquo;</a></li> {% else %} <li class="disabled"><span>&raquo;</span></li> {% endif %} </ul> {% endif %}
+             </div>
+         </div>
+     </section>
+ </div>
+
+ <div class="col-lg-4">
+    <section class="panel">
+        <header class="panel-heading"> Manage User Privileges </header>
+        <div class="panel-body">
+            <div class="col-sm-12">
+                <div class="alert alert-info fade in" id="usrdetails">
+                    <strong>User :</strong>
+                    <Not Selected>
+                </div>
+                <div class="col-lg-12 text-center">
+                    <button type="button" class="btn btn-primary" id="btnUpdatePerms"><i class="fa fa-floppy-o"></i> Update Permissions</button>
+                </div>
+                <form action="#" method="post" name="frmPerms" id="frmPerms"> {% csrf_token %} <input type="hidden" name="selusrid" id="selusrid">
+                    <p> {% for permission in perms%} <label><input type="checkbox" name="perms[]" class="chkperms" value="{{ permission.id }}" /> {{ permission.name }}</label><br /> {% endfor %} </p>
+                </form>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="modal fade " data-backdrop="static" data-keyboard="false" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h5 class="modal-title">UAC - View Users</h5>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer footer-button">
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block jsfooter %}
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".btnToken").click(function(e) {
+        e.preventDefault();
+        var link = $(this).attr('href');
+        var usr = $(this).closest('tr').find("td:eq(0)").text();
+        $.ajax({
+            type: "get",
+            url: link,
+            dataType: 'json',
+            cache: false,
+            success: function(response) {
+                if (response.status == "200") {
+                    r = JSON.parse(response.message);
+                    // alert(r[0].pk);
+                    $("#usrdetails").html('User : <strong>' + usr + '</strong><br /> Key : <strong>' + r[0].pk + '</strong>');
+                } else if (response.status == "400") {
+                    $('#myModal .modal-body').html(response.message);
+                    $('#myModal .footer-button').html('<button class="btn btn-danger" data-dismiss="modal" type="button">Close</button>');
+                    $('#myModal').modal();
+                }
+            }
+        });
+    });
+    //
+    $(".btnPerms").click(function(e) {
+        e.preventDefault();
+        $('#alertbox').html("");
+        var link = $(this).attr('href');
+        $("#selusrid").val($(this).attr('rel'));
+        $("#usrdetails").html('User : <strong>' + $(this).closest('tr').find("td:eq(0)").text() + '</strong>');
+        $('input[type=checkbox]').each(function() {
+            this.checked = false;
+        });
+        $.ajax({
+            type: "get",
+            url: link,
+            dataType: 'json',
+            cache: false,
+            success: function(response) {
+                if (response.status == "200") {
+                    r = JSON.parse(response.message);
+                    $.each(r, function(k, v) {
+                        $('input[type=checkbox]').each(function() {
+                            if (v.pk == $(this).val()) {
+                                $(this).prop('checked', true);
+                            }
+                        });
+                    });
+                } else if (response.status == "400") {
+                    $('#myModal .modal-body').html(response.message);
+                    $('#myModal .footer-button').html('<button class="btn btn-danger" data-dismiss="modal" type="button">Close</button>');
+                    $('#myModal').modal();
+                }
+            }
+        });
+    });
+    // updates perms
+    $("#btnUpdatePerms").click(function() {
+        var var1 = $('#selusrid').val();
+        var var2 = $('.chkperms:checked');
+        //perms: $('.chkperms:checked').serialize(),
+        var postData = $("#frmPerms").serializeArray();
+        $('#alertbox').html("");
+        $.ajax({
+            type: "POST",
+            url: "/uac/masters/updateperms/",
+            data: postData,
+            dataType: 'json',
+            success: function(response) {
+                console.log(response)
+                if (response.status == "200") {
+                    $('#alertbox').append('<div class="alert alert-success">  <i class="fa  fa-check-square-o fa-2x"></i>&nbsp;&nbsp;<strong>' + response.message + '</strong></div>');
+                } else if (response.status == "400") {
+                    $('#myModal .modal-body').html(response.message);
+                    $('#myModal .footer-button').html('<button class="btn btn-danger" data-dismiss="modal" type="button">Close</button>');
+                    $('#myModal').modal();
+                }
+            }
+        });
+        return false;
+    });
+    $(".btnPass").click(function(e) {
+        e.preventDefault();
+        var link = $(this).attr('href');
+        var usr = $(this).closest('tr').find("td:eq(0)").text();
+        $('#alertbox').html("");
+        if (confirm("Reset password..Are you Sure ?")) {
+            $.ajax({
+                type: "get",
+                url: link,
+                dataType: 'json',
+                cache: false,
+                success: function(response) {
+                    if (response.status == "200") {
+                        $('#alertbox').append('<div class="alert alert-success">  <i class="fa  fa-check-square-o fa-2x"></i>&nbsp;&nbsp;' + usr + '&nbsp;new password is <strong>' + response.message + '</strong></div>');
+                    } else if (response.status == "400") {
+                        $('#myModal .modal-body').html(response.message);
+                        $('#myModal .footer-button').html('<button class="btn btn-danger" data-dismiss="modal" type="button">Close</button>');
+                        $('#myModal').modal();
+                    }
+                }
+            });
+        }
+    });
+});
+</script>
+
+ {% endblock %}

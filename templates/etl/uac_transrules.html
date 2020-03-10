@@ -1,0 +1,179 @@
+{% extends "etl/uac_base.html" %}
+
+{% block content %}
+ 
+ <div class="col-lg-6">
+                      <section class="panel">
+					  <header class="panel-heading  m-bot15">
+                              Add Transformation Rules
+                          </header> 
+						  <div class="panel-body">
+                        <div class="col-lg-12">
+                          
+                         
+                              <form class="form-horizontal" role="form" method="post" action="/uac/transrulesave/" >
+							  {% csrf_token %} 
+                                  <div class="form-group">
+                                            <label class="control-label" for="rulename">Enter Rule Name<span class="text-danger">*</span></label>
+                                            <input type="text" id="rulename" name ="rulename" class="form-control" required  >
+                                  </div>
+								  <div class="form-group">
+                                            <label class="control-label" for="ruleregx">Regular Expressions (If any)</label>
+                                            <input type="text" id="ruleregx" name ="ruleregx" class="form-control">
+                                  </div>
+					
+
+                                  <div class="form-group">
+                                    
+                                          <button type="submit" class="btn btn-primary">Save</button>
+                                     
+                                  </div>
+                              </form>
+
+	
+                          </div>
+                          </div>
+						  
+						  
+                      </section>
+
+                  </div>
+				  
+			
+				  
+				<div class="col-lg-6">
+    <section class="panel">
+        <header class="panel-heading">
+            Listing Transformation Rules
+        </header>
+        <div class="panel-body">
+		
+<div class="col-sm-12">
+		
+<div class="col-sm-3"></div>
+
+			    <table class="table table-condensed table-striped " id="tblTransRules">
+        <thead>
+            <tr>
+                <th>Transformation Rule </th>
+                <th>Expresssion</th>
+			
+				    <th>Action</th>
+		
+            </tr>
+        </thead>
+        <tbody>
+            {% for df in transrules %}
+            <tr>
+                <td>{{ df.rule_name}}</td>
+                <td>{{ df.regexp }}</td>
+				
+                 <td><center><a class="btn btn-xs btn-primary btnEdit" title="Edit" rel="{{ df.rule_id }}"><span class="glyphicon glyphicon-edit"></span></a> <a class="btn btn-xs btn-danger btnDel" href="/uac/transruledel/{{ df.rule_id }}"  title="Delete" ><span class="glyphicon glyphicon-trash"></span> </a></center></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+	{% if transrules.has_other_pages %}
+  <ul class="pagination">
+    {% if transrules.has_previous %}
+      <li><a href="?page={{ transrules.previous_page_number }}">&laquo;</a></li>
+    {% else %}
+      <li class="disabled"><span>&laquo;</span></li>
+    {% endif %}
+    {% for i in transrules.paginator.page_range %}
+      {% if transrules.number == i %}
+        <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+      {% else %}
+        <li><a href="?page={{ i }}">{{ i }}</a></li>
+      {% endif %}
+    {% endfor %}
+    {% if transrules.has_next %}
+      <li><a href="?page={{ transrules.next_page_number }}">&raquo;</a></li>
+    {% else %}
+      <li class="disabled"><span>&raquo;</span></li>
+    {% endif %}
+  </ul>
+{% endif %}
+
+  </div>
+
+ </div>
+
+</section>
+</div>
+
+
+ <!-- Modal - Edit Form -->
+  <div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog  modal-md">
+    
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Edit Transformation Rule</h4>
+        </div>
+        <div class="modal-body">
+          				<div class="row">
+                  <div class="col-lg-12">
+                      <section class="panel">
+                       
+						<div class="col-lg-12">
+							<form class="form-horizontal" role="form" method="post" action="/uac/transrulesupdate/" >
+													  {% csrf_token %} 
+								<div class="form-group">
+								<input type="hidden" name ="trid" id="trid" class="form-control"   >
+									<label class="control-label" for="editrulename">Enter Rule Name</label>
+									<input type="text" id="editrulename" name ="editrulename" class="form-control" required  >
+									</div>
+									<div class="form-group">
+								
+									<label class="control-label" for="editregx">Reg. Expression (If any)</label>
+									<input type="text" id="editregx" name ="editregex" class="form-control"  >
+									</div>
+									<div class="form-group">
+										<button type="submit" class="btn btn-primary">Update</button>
+									</div>
+								</form>
+							</div>
+                        
+                      </section>
+                  </div>
+</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+	     <!-- Modal content End-->
+      
+    </div>
+  </div>
+   <!-- Modal Edit End -->
+{% endblock %}
+
+
+{% block jsfooter %}
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".btnEdit").click(function() {
+        var id = $(this).attr('rel');
+        $('#trid').val(id);
+        $('#editrulename').val($(this).closest('tr').find("td:eq(0)").text());
+        $('#editregx').val($(this).closest('tr').find("td:eq(1)").text());
+        $("#myModal").modal({
+            keyboard: false
+        });
+    });
+    $(".btnDel").click(function(e) {
+        e.preventDefault();
+        var link = $(this).attr('href');
+        if (confirm("Delete this record..Are you Sure ?")) {
+            window.location = link;
+        }
+    });
+});
+
+</script>
+
+ {% endblock %}

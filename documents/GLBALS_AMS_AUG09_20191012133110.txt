@@ -1,0 +1,5 @@
+companycode	account	profitcenter	tradingpartner	businessarea	costcenter	ledger	accountdescription	fiscalyear	period	ccy1	ccy1amt	ccy2	ccy2amt	ccy3	ccy3amt	ccy1amtnetdebits	ccy2amtnetdebits	ccy3amtnetdebits	ccy1amtnetcredits	ccy2amtnetcredits	ccy3amtnetcredits	transactioncount
+1	1110			0.0	0.0	1	Intercompany Payables	2015	4	EUR	3182390.28	USD	4634642.28	AUD	6168990.0					0.0		
+1	1110			0.0	0.0	1	Accrued Payroll 	2015	4	EUR	55082628.71	USD	80219035.73	CAD	106136787.27					0.0		
+1	1110			0.0	0.0	1	State Sales and Use Tax Payable 	2015	4	EUR	42767607.68	USD	62284177.96	DEM	111934799.3					0.0		
+1	1110			0.0	0.0	1	Unearned Revenue	2015	4	EUR	4678646.31	USD	6813699.78	EUR	4472730.24					0.0		

@@ -1,0 +1,486 @@
+{% extends "etl/uac_base.html" %}
+
+{% block content %}
+<div class="col-lg-6">
+    <section class="panel">
+        <header class="panel-heading"> Client Management </header>
+        <div class="panel-body">
+            <div class="col-lg-12">
+                <form class="form-horizontal" role="form" method="post" action="" id="EntryForm"> {% csrf_token %} <div class="form-group">
+                        <label class="control-label" for="ClientName">Client Name<span class="text-danger">*</span></label>
+                        <input type="text" name="ClientName" id="ClientName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label " for="ShortName">Short Name<span class="text-danger">*</span></label>
+                        <input type="text" name="ShortName" id="ShortName" class="form-control client-check" required>
+                        <span class="has-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="UserName">User Name<span class="text-danger">*</span></label>
+                        <input type="text" name="UserName" id="UserName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="Email">Email<span class="text-danger">*</span></label>
+                        <input type="text" name="Email" id="Email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="srcerp"> Select ERP<span class="text-danger">*</span></label>
+                        <select class="form-control js-example-basic-multiple" name="ERP" id="ERP" multiple="multiple">
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="col-lg-6">
+    <section class="panel">
+        <header class="panel-heading"> Client List </header>
+        <div class="panel-body">
+            <table class="table table-striped table-hover table-bordered" id="clientMaster">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Short Name</th>
+                        <th>User Name</th>
+                        <th>
+                            <center>Actions</center>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody> {% for cnt in clients %} <tr>
+                        <td>{{ cnt.client_name }}</td>
+                        <td>{{ cnt.client_short }}</td>
+                        <td class="hide">{{ cnt.client_id }}</td>
+                        <td class="hide">{{ cnt.client_email }}</td>
+                        <td>{{ cnt.user_name }}</td>
+                        <td>
+                            <center><a class="btn btn-xs btn-primary btnEdit" title="Edit" id="Edit_{{ cnt.client_id }}" rel="{{ cnt.client_id }}"><span class="glyphicon glyphicon-edit"></span></a> <a class="btn btn-xs btn-danger btnDel" href="/uac/clientdelete/{{ cnt.client_id }}" title="Delete" id="Del_{{ cnt.client_id }}"><span class="glyphicon glyphicon-trash"></span> </a></center>
+                        </td>
+                    </tr> {% endfor %} </tbody>
+            </table>
+            <div class="text-center"> {% if clients.has_other_pages %} <ul class="pagination"> {% if clients.has_previous %} <li><a href="?page={{ clients.previous_page_number }}">&laquo;</a></li> {% else %} <li class="disabled"><span>&laquo;</span></li> {% endif %} {% for i in clients.paginator.page_range %} {% if clients.number == i %} <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li> {% else %} <li><a href="?page={{ i }}">{{ i }}</a></li> {% endif %} {% endfor %} {% if clients.has_next %} <li><a href="?page={{ clients.next_page_number }}">&raquo;</a></li> {% else %} <li class="disabled"><span>&raquo;</span></li> {% endif %} </ul> {% endif %} </div>
+        </div>
+    </section>
+</div>
+
+<div class="col-lg-12">
+    <section class="panel">
+        <header class="panel-heading">
+            <label class="control-label" for="ShortName">SFTP Details<span class="text-danger">*</span></label>
+        </header>
+        <div class="panel-body">
+            <div class="col-lg-12">
+                <table class="table table-condensed table-striped" id="myTable">
+                    <thead>
+                        <tr>
+                            <th>Destination Tool</th>
+                            <th>FTP Host</th>
+                            <th>User Name</th>
+                            <th>Password</th>
+                            <th>Port</th>
+                            <th>In Folder</th>
+                            <th>Out Folder</th>
+                            <th>&nbsp;</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <select class="form-control CboDesTool">
+                                </select>
+                            </td>
+                            <td>
+                                <input type="text" class="form-control" name="ftp[]">
+                            </td>
+                            <td>
+                                <input type="text" class="form-control" name="username[]">
+                            </td>
+                            <td>
+                                <input type="password" class="form-control" name="password[]">
+                            </td>
+                            <td>
+                                <input type="text" class="form-control" name="SftpPort[]">
+                            </td>
+                            <td>
+                                <input type="text" class="form-control" name="infolder[]">
+                            </td>
+                            <td>
+                                <input type="text" class="form-control" name="outfolder[]">
+                            </td>
+                            <td>
+                                <button class="btn btn-xs btn-primary btnAddRow" type="button"> <i class="fa fa-plus fa-xs"></i> </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="form-group center" id="UIButton">
+                    <button id="btnSave" type="button" class="btn btn-primary saveBtn"><span>Save<span></button>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<input type="hidden" id="HdnCid"/>
+
+ 
+
+<div class="modal fade " data-backdrop="static" data-keyboard="false" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <input type="hidden" name="txtId" id="txtId">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h5 class="modal-title">UAC - Manage Clients</h5>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer footer-button">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block jsfooter %}
+<link href="/static/etl/css/select2.min.css" rel="stylesheet" />
+<script src="/static/etl/js/select2.min.js"></script>
+
+
+
+<style>
+.CboDesTool{
+	width:160px;
+}
+.center{
+	text-align:center;
+}
+
+</style>	
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $('.has-error').html(``);
+    var erp = new Array();
+    $.ajax({
+        url: "/uac/getclienterp/",
+        type: 'get',
+        data: '',
+        dataType: 'json',
+        success: function(response) {
+            for (i = 0; i < response.erp.length; i++) {
+                erp[i] = {
+                    "id": response.erp[i][0],
+                    "text": response.erp[i][1]
+                }
+            }
+            $("#ERP").select2({
+                data: erp,
+                placeholder: 'Select ERP'
+            });
+            $('.CboDesTool').append(new Option('Please Select', '0'));
+            for (i = 0; i < response.tool.length; i++) {
+                $('.CboDesTool').append(new Option(response.tool[i][1], response.tool[i][0]));
+            }
+        }
+    });
+    $(document).on("click", ".btnAddRow", function() {
+        var markup = $(this).closest("tr").html();
+        var status = "";
+        $('#myTable tbody tr').each(function(row, tr) {
+            if ($.trim($(tr).find('td:eq(0) select').val()) == '0') {
+                status = true;
+            }
+        });
+        if (status) {
+            $('#myModal .modal-body').html('Please Select a destination tool!!');
+            $('#myModal .footer-button').html('<button class="btn btn-danger" data-dismiss="modal" type="button">Close</button>');
+            $('#myModal').modal();
+            return;
+        }
+        $(this).closest('tr').find("td:eq(7)").find('button').removeClass('btn btn-success btn-sm btnAddRow');
+        $(this).closest('tr').find("td:eq(7)").find('button').addClass('btn btn-danger btn-sm btnDelRow');
+        $(this).closest('tr').find("td:eq(7)").find('i').removeClass('fa fa-plus fa-xs');
+        $(this).closest('tr').find("td:eq(7)").find('i').addClass('fa fa-minus-circle fa-sm');
+        $('#myTable').append('<tr>' + markup + '</tr>');
+    });
+    $(document).on("click", ".btnDelRow", function() {
+        $(this).closest('tr').remove();
+    });
+    $(document).on("click", "#btnUpdate", function() {
+        var message = "";
+        var client = new Array();
+        $('#myTable tbody tr').each(function(row, tr) {
+            if ($.trim($(tr).find('td:eq(1) input').val()) != '') {
+                if ($.trim($(tr).find('td:eq(2) input').val()) == "" || $.trim($(tr).find('td:eq(3) input').val()) == "" || $.trim($(tr).find('td:eq(4) input').val()) == "" || $.trim($(tr).find('td:eq(5) input').val()) == "" || $.trim($(tr).find('td:eq(6) input').val()) == "") message = "Please fill all remaining FTP Host details!";
+            }
+            if ($.trim($(tr).find('td:eq(0) select').val()) == '0') message = "Please Select a destination tools!";
+            if ($.trim($(tr).find('td:eq(1) input').val()) == '0') message = ""
+            client[row] = {
+                "DestTool": $.trim($(tr).find('td:eq(0) select').val()),
+                "Ftp": $.trim($(tr).find('td:eq(1) input').val()),
+                "Username": $.trim($(tr).find('td:eq(2) input').val()),
+                "Password": $.trim($(tr).find('td:eq(3) input').val()),
+                "SftpPort": $.trim($(tr).find('td:eq(4) input').val()),
+                "InFolder": $.trim($(tr).find('td:eq(5) input').val()),
+                "OutFolder": $.trim($(tr).find('td:eq(6) input').val())
+            }
+        });
+        var arr = [];
+        $("#myTable tbody tr").each(function(row, tr) {
+            var value = $.trim($(tr).find('td:eq(0) select').val());
+            if (arr.indexOf(value) == -1) arr.push(value);
+            else message = "Sorry! Duplicate found in Destination Tool!";
+        });
+        if ($('#ClientName').val() == '' || $('#ShortName').val() == '' || $('#Email').val() == '' || $('#ERP').val() == '' || $('#ERP').val() == null) message = "Please fill all required(*) fields!";
+        if (message != '') {
+            $('#myModal .modal-body').html(message);
+            $('#myModal .footer-button').html('<button class="btn btn-danger" data-dismiss="modal" type="button">Close</button>');
+            $('#myModal').modal();
+            return;
+        }
+        var client_name = $("#ClientName").val();
+        var short_name = $("#ShortName").val();
+        var user_name = $("#UserName").val();
+        var select_erp = $("#ERP").val();
+        var email = $("#Email").val();
+        var cid = $("#HdnCid").val();
+        var obj = {
+            ClientName: client_name,
+            ShortName: short_name,
+            UserName: user_name,
+            ERP: select_erp,
+            Clients: client,
+            cid: cid,
+            Email: email
+        };
+        $("#btnUpdate span").html('Please wait');
+        $("#btnUpdate").attr("disabled", "disabled");
+        var formdata = JSON.stringify(obj);
+        $.ajax({
+            type: "GET",
+            url: "/uac/clientupdate/",
+            data: {
+                formdata: formdata
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status == "200") {
+                    $('#myModal .modal-body').html(response.message);
+                    $('#myModal .footer-button').html('<button class="btn btn-success" data-dismiss="modal" type="button" onclick=reload_window()>Close</button>');
+                    $('#myModal').modal();
+                } else if (response.status == "400") {
+                    $('#myModal .modal-body').html(response.message);
+                    $('#myModal .footer-button').html('<button class="btn btn-danger" data-dismiss="modal" type="button">Close</button>');
+                    $('#myModal').modal();
+                }
+                $("#btnUpdate").removeAttr('disabled');
+                $("#btnUpdate span").html('Update');
+            }
+        });
+    });
+    var id = null
+    $(document).on("click", ".btnEdit", function() {
+        id = $(this).parents("tr").find("td:eq(2)").html();
+        // var id1 =$(this).parents("tr").find("td:eq(3)").html();
+        // alert(id1)
+        $("#HdnCid").val(id);
+        $("#ClientName").val($(this).parents("tr").find("td:eq(0)").html())
+        $("#ShortName").val($(this).parents("tr").find("td:eq(1)").html());
+        $("#Email").val($(this).parents("tr").find("td:eq(3)").html());
+        $("#UserName").val($(this).parents("tr").find("td:eq(4)").html());
+        var markup = $('#myTable tbody tr:last').html();
+        $('#myTable tbody').html('');
+        // alert(id)
+        $.ajax({
+            url: "/uac/editdetails/",
+            type: 'get',
+            data: {
+                cid: id
+            },
+            dataType: 'json',
+            success: function(response) {
+                $("#UIButton").html('<button id="btnUpdate" type="button" class="btn btn-primary"><span>Update<span></button>&nbsp;<button id="btnCancel" type="button" class="btn btn-warning" onclick=reload_window()><span>Cancel<span></button>');
+                var objClient = JSON.parse(response.clientdata);
+                var Values = new Array();
+                for (i = 0; i < objClient.length; i++) {
+                    Values.push(objClient[i].fields.erp_id.toString());
+                }
+                $("#ERP").val(Values).trigger('change');
+                var objTools = JSON.parse(response.tooldata);
+                for (i = 0; i < objTools.length; i++) {
+                    $('#myTable tbody').append('<tr>' + markup + '</tr>');
+                    $('#myTable tbody tr:last').find('td:eq(0) select').val(objTools[i].fields.tool_id);
+                    $('#myTable tbody tr:last').find('td:eq(1) input').val(objTools[i].fields.sftp_server);
+                    $('#myTable tbody tr:last').find('td:eq(2) input').val(objTools[i].fields.sftp_user);
+                    $('#myTable tbody tr:last').find('td:eq(3) input').val(objTools[i].fields.sftp_pwd);
+                    $('#myTable tbody tr:last').find('td:eq(4) input').val(objTools[i].fields.sftp_port);
+                    $('#myTable tbody tr:last').find('td:eq(5) input').val(objTools[i].fields.sftp_in);
+                    $('#myTable tbody tr:last').find('td:eq(6) input').val(objTools[i].fields.sftp_out);
+                    $("#myTable tbody tr:last").prev().find('button').removeClass('btn btn-success btn-sm btnAddRow');
+                    $("#myTable tbody tr:last").prev().find("td:eq(7)").find('button').addClass('btn btn-danger btn-sm btnDelRow');
+                    $("#myTable tbody tr:last").prev().find('i').removeClass('fa fa-plus fa-xs');
+                    $("#myTable tbody tr:last").prev().find("td:eq(7)").find('i').addClass('fa fa-minus-circle fa-sm');
+                }
+            }
+        });
+    });
+    $('#myModal').on('hidden.bs.modal', function(e) {
+        $($("#txtId").val()).focus();
+    });
+    $("#btnSave").click(function(e) {
+        var message = "";
+        var txtId = '';
+        var client = new Array();
+        //Username Validation
+        username = $("#UserName").val();
+        var username_pattern = /^[a-z]*$/;
+        //eMail Validation
+        clientemail = $("#Email").val();
+        var email_pattern = /^\b[A-Z0-9._%-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b$/i;
+        validate = true
+        $('#myTable tbody tr').each(function(row, tr) {
+            if ($.trim($(tr).find('td:eq(0) select').val()) == '0') message = "Please Select Destination Tool";
+            if ($.trim($(tr).find('td:eq(1) input').val()) != '') {
+                if ($.trim($(tr).find('td:eq(2) input').val()) == "" || $.trim($(tr).find('td:eq(3) input').val()) == "" || $.trim($(tr).find('td:eq(4) input').val()) == "" || $.trim($(tr).find('td:eq(5) input').val()) == "" || $.trim($(tr).find('td:eq(6) input').val()) == "") message = "Please fill all remaining FTP Host details!";
+            }
+            client[row] = {
+                "DestTool": $.trim($(tr).find('td:eq(0) select').val()),
+                "Ftp": $.trim($(tr).find('td:eq(1) input').val()),
+                "Username": $.trim($(tr).find('td:eq(2) input').val()),
+                "Password": $.trim($(tr).find('td:eq(3) input').val()),
+                "SftpPort": $.trim($(tr).find('td:eq(4) input').val()),
+                "InFolder": $.trim($(tr).find('td:eq(5) input').val()),
+                "OutFolder": $.trim($(tr).find('td:eq(6) input').val())
+            }
+        });
+        if ($('#ClientName').val() == '') {
+            // if ($('#ClientName').val() == '' || $('#ShortName').val() == '' || $('#ERP').val() == '' || $('#ERP').val() == null)
+            message = "Please fill Client Name!";
+            txtId = '#ClientName';
+        } else if ($('#ShortName').val() == '') {
+            message = "Please fill Client ShortName!";
+            txtId = '#ShortName';
+        } else if ($('#UserName').val() == '') {
+            message = "Please fill User Name!";
+            txtId = '#Email';
+        } else if ($('#Email').val() == '') {
+            message = "Please fill Email!";
+            txtId = '#Email';
+        } else if ($('#ERP').val() == null) {
+            message = "Please fill ERP!";
+            txtId = '#ERP';
+        }
+        if ($('#UserName').val() != '') {
+            $('#unameErr').remove();
+            if (username_pattern.test(username) == false) {
+                $('label[for="UserName"]').next().after('<span class="text-danger" id="unameErr">&nbsp;No Capital letters or whitespaces allowed</span>');
+                validate = false
+            }
+        }
+        if ($('#Email').val() != '') {
+            $('#uemailErr').remove();
+            if (email_pattern.test(clientemail) == false) {
+                $('label[for="Email"]').next().after('&nbsp;<span class="text-danger" id="uemailErr">Not a valid Email</span>');
+                validate = false
+            }
+        }
+        if (validate == false) {
+            return false
+        }
+        var arr = [];
+        $("#myTable tbody tr").each(function(row, tr) {
+            var value = $.trim($(tr).find('td:eq(0) select').val());
+            if (arr.indexOf(value) == -1) arr.push(value);
+            else message = "Sorry! Duplicate found in Destination Tool!";
+        });
+        if (message != '') {
+            $('#txtId').val(txtId);
+            $('#myModal .modal-body').html(message);
+            $('#myModal .footer-button').html('<button class="btn btn-danger" data-dismiss="modal" type="button">Close</button>');
+            $('#myModal').modal();
+            return;
+        }
+        var client_name = $("#ClientName").val();
+        var short_name = $("#ShortName").val();
+        var user_name = $("#UserName").val();
+        var select_erp = $("#ERP").val();
+        var email = $("#Email").val();
+        var obj = {
+            ClientName: client_name,
+            ShortName: short_name,
+            UserName: user_name,
+            ERP: select_erp,
+            Clients: client,
+            Email: email
+        };
+        $("#btnSave span").html('Please wait');
+        $("#btnSave").attr("disabled", "disabled");
+        var formdata = JSON.stringify(obj);
+        $.ajax({
+            type: "GET",
+            url: "/uac/clientERPsave/",
+            data: {
+                formdata: formdata
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status == "200") {
+                    $('#myModal .modal-body').html(response.message);
+                    $('#myModal .footer-button').html('<button class="btn btn-success" data-dismiss="modal" type="button" onclick=reload_window()>Close</button>');
+                    $('#myModal').modal();
+                } else if (response.status == "400") {
+                    $('#myModal .modal-body').html(response.message);
+                    $('#myModal .footer-button').html('<button class="btn btn-danger" data-dismiss="modal" type="button">Close</button>');
+                    $('#myModal').modal();
+                }
+                $("#btnSave").removeAttr('disabled');
+                $("#btnSave span").html('Save');
+            }
+        });
+    });
+
+    function reload_window() {
+        window.location = '';
+    }
+    $(".btnDel").click(function(e) {
+        e.preventDefault();
+        var link = $(this).attr('href');
+        if (confirm("Delete this record..Are you Sure ?")) {
+            window.location = link;
+        }
+    });
+    $('.client-check').on("focusout", function(e) {
+        $.ajax({
+            headers: {
+                "X-CSRFToken": '{{csrf_token}}'
+            },
+            type: "POST",
+            dataType: 'json',
+            url: `/uac/client-check/`,
+            data: {
+                'name': $(this).val(),
+                'id': id
+            },
+            beforeSend: function() {},
+        }).done(function(response) {
+            console.log(response);
+            if (response.success) {
+                $('.has-error').html(`Already exist`)
+                $(".saveBtn").attr("disabled", true);
+                // $(".save-btn").attr("disabled", false);
+                // isDisabled = false;
+            } else {
+                $('.has-error').html(``)
+                $(".saveBtn").attr("disabled", false);
+            }
+        }).fail(function(response) {
+            // $('.email-error-container').html(`<span class="has-error"><ul class="errorlist"><li>${response.msg}</li></ul></span>`)
+        });
+    });
+});
+</script>
+{% endblock %}

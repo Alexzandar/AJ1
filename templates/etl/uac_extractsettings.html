@@ -1,0 +1,497 @@
+{% extends "etl/uac_base.html" %}
+
+{% block content %}
+ 
+ <div class="col-lg-6">
+    <section class="panel">
+        <header class="panel-heading  m-bot15">
+            Client - Extractor Settings
+        </header>
+        <div class="panel-body">
+
+            <div class="col-lg-12">
+
+                
+                    <div class="form-group">
+
+                        <label class="control-label" for="inputSuccess">Select Client</label>
+                        <select name="client" id="client" class="form-control m-bot10">
+                            <option>Select Client</option>
+                            {% for row in clients %}
+                            <option value="{{ row.client_id }}">{{ row.client_name }} </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+
+                        <label class="control-label " for="inputSuccess">Select ERP</label>
+                        <select name="erp" id="erp" class="form-control m-bot10">
+                            <option>Select ERP</option>
+                            {% for row in erps %}
+                            <option value="{{ row.erp_id }}">{{ row.erp_name}}</option>
+                            {% endfor %}
+                        </select>
+
+                    </div>
+                    <div class="form-group">
+
+                        <label class="control-label " for="inputSuccess">Select Destination Tool</label>
+                        <select name="tool" id="toolid" class="form-control m-bot10">
+                            <option>Select Destination Tool</option>
+                            {% for row in tools %}
+                            <option value="{{ row.tool_id }}">{{ row.tool_name}}</option>
+                            {% endfor %}
+                        </select>
+
+                    </div>
+                    <div class="form-group">
+
+                        <label class="control-label " for="inputSuccess">Extract Type</label>
+                        <select name="extract" id="extract" class="form-control m-bot10">
+                            <option>Select Extract Type</option>>
+                            {% for row in extractor %}
+                            <option  value="{{ row.dest_file_id }}">{{ row.dest_file_name}}</option>
+                            {% endfor %}
+                        </select>
+
+                    </div>
+					
+					 <div class="form-group">
+					    <label class="control-label " for="inputSuccess">Load Sample Extractor File</label>
+					  <form id="frmExt" role="form">
+
+                                {% csrf_token %}
+                                <div class="col-lg-9">
+                                    <div class="form-group">
+                                        <input type="file" name="myfile">
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <div class="form-group">
+                                        <button type="submit" id="btnLoad">Load &gt;&gt;</button>
+                                    </div>
+
+                                </div>
+                            </form>
+							</div>
+                    <div class="form-group">
+
+                        <label class="control-label " for="inputSuccess">Select Ruleset</label>
+                        <select name="ruleset" class="form-control m-bot10" id="cboRuleset">
+							<option value="0">Select Ruleset</option>
+                            {% for row in rset %}
+                            <option value="{{ row.ruleset_id }}">{{ row.ruleset_name}}</option>
+                            {% endfor %}
+                        </select>
+
+                    </div>
+					  
+					
+                    <div class="form-group">
+
+                        <label class="control-label" for="inputSuccess">Data Format</label>
+                        <div class="radio ">
+                            <label>
+                                <input name="optData" id="optionsRadios1" value="txt" checked="checked" type="radio">Text File
+                            </label>
+
+                            <label>
+                                <input name="optData" id="optionsRadios1" value="json" type="radio"> JSON Data
+                            </label>
+                            <label>
+                                <input name="optData" id="optionsRadios1" value="csv" type="radio"> CSV File
+                            </label>
+                            
+                    </div>
+
+                    <div class="form-group">
+
+                        <label class="control-label" for="inputSuccess">Column Delimiter in File</label>
+                        <select class="form-control m-bot10" name="ColDelimiter" id="cboColDelimiter">
+                            <option value="tab">Tab </option>
+                            <option value="comma">Comma [ , ]</option>
+                            <option value="pipe">Pipe [ | ] </option>
+
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="inputSuccess">File Name </label>
+                        <input type="text" class="form-control" name="fname" id="ExtFName">
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label class="control-label" for="inputSuccess">File Name Starts with</label>
+                        <input type="text" class="form-control" name="fnamestart" id="FNameStart">
+                    </div>
+					<!--
+                    <div class="form-group">
+                        <label class="control-label" for="inputSuccess">File Name Format</label>
+                        <input type="text" class="form-control" name="fnameFormat" id="FNameFormat">
+
+                    </div> -->
+
+   
+                
+            </div>
+        </div>
+
+    </section>
+
+</div>
+
+<div class="col-lg-6">
+    <section class="panel">
+        <header class="panel-heading"> Mapping </header>
+        <div class="panel-body">
+    
+            <div class="col-sm-6">
+
+                <table class="table table-striped table-hover" id="tblExt">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Extractor Columns</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+				     <div class="form-group">
+                        <button type="button" class="btn btn-warning " id="btnAddBlank"><i class="fa fa-arrow-up"></i>&nbsp;Add Blank Column</button>
+                  </div>
+            </div>
+            <div class="col-sm-6">
+                <table class="table table-striped table-hover" id="tblDest">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Destination Columns</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+
+            </div>
+			 <div class="col-sm-12  text-center">
+                 <div class="form-group">
+                        <button type="button" class="btn btn-info btn-wdt" id="btnSettingSave">Save</button>
+                  </div>
+				
+				  </div>
+        </div>
+
+
+    </section>
+</div>
+<div class="col-lg-12">
+    <section class="panel">
+        <header class="panel-heading"> <button type="button" class="btn btn-danger" id="btnViewSettings">View Saved Settings</button></header>
+        <div class="panel-body">
+    
+		<table class="table table-striped table-hover" id="tblSettingsList">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>No.</th>
+                            <th>Client</th>
+							  <th>ERP</th>
+                            <th>Tool</th>
+							  <th>Extractor</th>
+                            <th>Ruleset</th>
+							  <th>Prefix</th>
+							   <th>&nbsp;</th>
+                            
+
+                        </tr>
+                    </thead>
+                    <tbody>
+</tbody>
+                </table>
+
+        </div>
+
+
+    </section>
+</div>
+
+<div class="modal fade" data-backdrop="static" data-keyboard="false"  id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+	  <div class="modal-content">
+		  <div class="modal-header">
+			  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+			  <h5 class="modal-title">UAC - Client-Extractor Settings</h5>
+		  </div>
+		  <div class="modal-body">
+
+		  </div>
+		  <div class="modal-footer footer-button">
+			 
+		  </div>
+	  </div>
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block jsfooter %}
+ <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script> 
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#tblExt tbody').sortable();
+    $('select[name="client"]').change(function() {
+        var value = $(this).val();
+        $.ajax({
+            type: "get",
+            url: "/uac/client_extract_valuechange/",
+            data: {
+                valueChange: value
+            },
+            dataType: 'html'
+        }).done(function(response) {
+            tool_data = JSON.parse(response)
+            erp_data = JSON.parse(response)
+            $("#erp").html('<option value=\'0\'> Select ERP</option>');
+            $.each(erp_data['erps'], function(key, val) {
+                $("#erp").append('<option value="' + val.erp_id + '">' + val.erp_name + '</option>');
+            });
+            $("#toolid").html('<option value=\'0\'>Select Destination Tool</option>');
+            $.each(tool_data['tool'], function(key, val) {
+                $("#toolid").append('<option value="' + val.tool_id + '">' + val.tool_name + '</option>');
+            });
+        });
+    });
+    $("#btnSettingSave").click(function(e) {
+        if ($('#tblExt tr').length == 1 || $('#tblDest tr').length == 1) {
+            alert("Mapping not completed");
+            return false;
+        }
+        //dumps table dest values to array  
+        var Dest = new Array();
+        $('#tblDest tbody tr').each(function(row, tr) {
+            Dest[row] = {
+                "ColumnName": $(tr).find('td:eq(1)').html()
+            };
+        });
+        //dumps table source values to array  
+        var Src = new Array();
+        $('#tblExt tbody tr').each(function(row, tr) {
+            Src[row] = {
+                "ColumnName": $(tr).find('td:eq(1)').html()
+            };
+        });
+        //filenamestart validation
+        fnstart = $("#FNameStart").val();
+        var fnstart_pattern = /^[A-Z_]*$/;
+        if ($('#fnamestart').val() != '') {
+            $('#fnstartErr').remove();
+            if (fnstart_pattern.test(fnstart) == false) {
+                $('label[for="fnamestart"]').next().after('&nbsp;<span class="text-danger" id="fnstartErr">Not a valid Email</span>');
+                return false
+            }
+        }
+        // other form values
+        var obj = {
+            ClientId: $('#client').val(),
+            ErpId: $('#erp').val(),
+            ToolID: $('#toolid').val(),
+            DestFileId: $('#extract').val(),
+            RuleSetId: $('#cboRuleset').val(),
+            DataFormat: $('input[name=optData]:checked').val(),
+            ColDelimiter: $('#cboColDelimiter').val(),
+            FileNameStart: $('#FNameStart').val(),
+            FileName: $('#ExtFName').val(),
+            FileNameFormat: $('#FNameFormat').val(),
+            DestCols: Dest,
+            SourceCols: Src
+        };
+        var dataString = JSON.stringify(obj);
+        $.ajax({
+            type: "get",
+            url: "/uac/savesettings/",
+            data: {
+                formdata: dataString
+            },
+            dataType: 'json',
+            cache: false,
+            success: function(response) {
+                // console.log(response)
+                if (response.status == "200") {
+                    $('#myModal .modal-body').html(response.message);
+                    $('#myModal .footer-button').html('<button class="btn btn-success" data-dismiss="modal" type="button" onclick=reload_window()>Close</button>');
+                    $('#myModal').modal();
+                } else if (response.status == "400") {
+                    $('#myModal .modal-body').html(response.message);
+                    $('#myModal .footer-button').html('<button class="btn btn-danger" data-dismiss="modal" type="button">Close</button>');
+                    $('#myModal').modal();
+                } else if (response.status == "500") {
+                    $('#myModal .modal-body').html(response.message);
+                    $('#myModal .footer-button').html('<button class="btn btn-danger" data-dismiss="modal" type="button">Close</button>');
+                    $('#myModal').modal();
+                }
+                $("#btnSaveSchema").removeAttr('disabled');
+                $("#btnSaveSchema span").html('Save');
+            }
+        });
+    });
+    $("#btnAddBlank").click(function(e) {
+        if ($('#tblExt tr').length > 1) {
+            $('#tblExt').append('<tr><td>0</td><td>[BLANK]</td> <td> <i class="fa fa-chevron-right"></td></tr>');
+            $('#tblExt tr:last').css({
+                color: "#da532c"
+            });
+        }
+    });
+    /// GET LIST OF saved settings
+    $("#btnViewSettings").click(function(e) {
+        $("#tblSettingsList tbody tr").each(function() {
+            this.parentNode.removeChild(this);
+        });
+        $.ajax({
+            type: "get",
+            url: "/uac/getsettingslist/",
+            dataType: 'json',
+            cache: false,
+            success: function(response) {
+                // data =  JSON.parse(response);
+                // console.log(response)
+                if (response.status == "200") {
+                    $.each(response.message, function(k, v) {
+                        var rowdata = '';
+                        var btn = '';
+                        rowdata = rowdata + '<tr>';
+                        $.each(v, function(index, value) {
+                            rowdata = rowdata + '<td>' + value + '</td>';
+                        });
+                        rowdata = rowdata + '<td><a class="btn btn-xs btn-primary btnViewMap" title="View Mapping" rel="1"><span class="glyphicon glyphicon-eye-open"></span>&nbsp;Mapping</a> </td>';
+                        rowdata = rowdata + '</tr>';
+                        $('#tblSettingsList').append(rowdata);
+                        //alert(response.message);
+                    });
+                } else if (response.status == "400") {
+                    $('#myModal .modal-body').html(response.message);
+                    $('#myModal .footer-button').html('<button class="btn btn-danger" data-dismiss="modal" type="button">Close</button>');
+                    $('#myModal').modal();
+                }
+            }
+        });
+    });
+    /////
+    ///View Mapping Details -List
+    $(document).on("click", ".btnViewMap", function(event) {
+        var setid = $(this).closest('tr').find("td:eq(0)").text();
+        var heading = '<p><b>Mapping Details</b><br /> Client : <b>' + $(this).closest('tr').find("td:eq(1)").text();
+        var heading = heading + '</b> | Extractor : <b>' + $(this).closest('tr').find("td:eq(4)").text() + ' </b>| Prefix : <b>' + $(this).closest('tr').find("td:eq(6)").text() + '</b></p><hr>';
+        var dataString = 'id=' + setid;
+        $.ajax({
+            type: "get",
+            url: "/uac/getmappingslist/",
+            data: dataString,
+            dataType: 'json',
+            cache: false,
+            success: function(response) {
+                var rowdata = '';
+                tbl = '<table class="table table-striped table-hover" ><thead class="thead-dark"><tr><th>Source</th><th>Destination</th></tr></thead><tbody>';
+                $.each(response.columns, function(k, v) {
+                    rowdata = rowdata + '<tr>';
+                    $.each(v, function(index, value) {
+                        rowdata = rowdata + '<td>' + value + '</td>';
+                    });
+                    rowdata = rowdata + '</tr>';
+                });
+                tbl = tbl + rowdata + '</tbody></table>';
+                $('#myModal .modal-body').html(heading + tbl);
+                $('#myModal .footer-button').html('<button class="btn btn-success" data-dismiss="modal" type="button" onclick=reload_window()>Close</button>');
+                $('#myModal').modal();
+            }
+        });
+    });
+    ///
+    /// FILE UPLOAD
+    $('#frmExt').on('submit', uploadFiles);
+    //Catch the form submit and upload the files
+    function uploadFiles(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        var form = $('#frmExt')[0];
+        // Create an FormData object 
+        var data = new FormData(form);
+        $.ajax({
+            url: '/uac/getextracthead/',
+            type: 'POST',
+            data: data,
+            cache: false,
+            dataType: 'json',
+            enctype: 'multipart/form-data',
+            processData: false, // Don't process the files
+            contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+            success: function(data) {
+                $("#tblExt tbody tr").each(function() {
+                    this.parentNode.removeChild(this);
+                });
+                jQuery.each(data.message, function(i, val) {
+                    $('#tblExt').append('<tr><td>2</td><td>' + val + '</td> <td> <i class="fa fa-chevron-right"></td></tr>');
+                });
+                //clears destination table
+                $("#tblDest").find("tr:gt(0)").remove();
+                $("#cboRuleset").val("0");
+                $('#ExtFName').val(data.fn);
+                $('#FNameStart').val(data.arfname.FileName);
+            }
+        });
+    }
+    /// FILE UPLOAD END
+    //rule set load
+    $("#cboRuleset").change(function() {
+        var id = $(this).val();
+        var dataString = 'id=' + id;
+        $.ajax({
+            type: "get",
+            url: "/uac/getrulesetcolumns/",
+            data: dataString,
+            dataType: 'json',
+            cache: false,
+            success: function(response) {
+                $("#tblDest tbody tr").each(function() {
+                    this.parentNode.removeChild(this);
+                });
+                jQuery.each(response.columns, function(i, val) {
+                    $('#tblDest').append('<tr><td>i</td><td>' + val + '</td> </tr>');
+                });
+                //Remove row which contains blank as text
+                $('#tblExt tr > td:contains("[BLANK]")').parent().remove();
+                if (($('#tblDest tr').length) >= ($('#tblExt tr').length)) {
+                    var counter = $('#tblDest tr').length - $('#tblExt tr').length;
+                    for (var i = 0; i < counter; i++) {
+                        $('#tblExt').append('<tr><td>0</td><td> [BLANK]</td> <td> <i class="fa fa-chevron-right"></td></tr>');
+                        $('#tblExt tr:last').css({
+                            color: "#da532c"
+                        });
+                    }
+                } else {
+                    alert('Warning!!. Extractor Columns shown more columns than Destination Columns');
+                }
+            }
+        });
+    });
+    //end
+});
+ </script>
+	
+<style>
+	#tblExt td:nth-child(1), 	#tblExt th:nth-child(1) {  display: none} 
+	#tblDest td:nth-child(1), #tblDest th:nth-child(1) {  display: none}
+	#tblExt tr { cursor:grab;}
+	#tblDest tr { cursor:grab;}
+</style>
+	
+		
+		
+ 
+{% endblock %}
